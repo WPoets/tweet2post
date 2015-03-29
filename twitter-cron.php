@@ -36,7 +36,9 @@ $token='';  //Access Token
 $token_sceret='';  //Access Token Secret
 $embeddly_key = "";  //embeddly api key
 
-$twitter_accounts =array('rohit11','LHInsights','trakin');
+$twitter_accounts =array();
+
+$publish_acc=array();
 
 $settings = array(
     'oauth_access_token' => $token,
@@ -54,7 +56,7 @@ foreach($twitter_accounts as $t_acc)
 {
 	$turl = 'https://api.twitter.com/1.1/statuses/user_timeline.json';
 	$sc=get_option('since_last_time');
-	if($sc)
+	if(isset($sc[$t_acc]))
 	{
 		$since_id ='&since_id='.$sc[$t_acc];
 	}
@@ -64,6 +66,7 @@ foreach($twitter_accounts as $t_acc)
 	$getfield = '?screen_name='.$t_acc.'&count=10'.$since_id;
 	
 	$requestMethod = 'GET';	
+
 	//call twitter to get the tweets,
 	$response= $twitter->setGetfield($getfield)->buildOauth($turl, $requestMethod)->performRequest();
 	//foreach tweet parse the urls
@@ -74,7 +77,7 @@ foreach($twitter_accounts as $t_acc)
 		$last_tweet_id[$t_acc]=$t->id_str;
 		foreach($t->entities->urls as $url)
 		{
-			echo '<br>'.$url->expanded_url;
+			
 			//
 			$args = array(
 					'post_type'		=>	'post',
@@ -87,7 +90,7 @@ foreach($twitter_accounts as $t_acc)
 					)
 				);
 			$p = new WP_Query( $args );
-			//print_r($p);
+			echo '<br>Found='.$p->found_posts;
 			
 			if(!$p->found_posts){
 				
@@ -97,12 +100,17 @@ foreach($twitter_accounts as $t_acc)
 				if(!is_wp_error($r))
 				{ 
 					$r_decoded=json_decode($r['body']);
+					$post_status="draft";
+					
+					if(in_array($t_acc, $publish_acc))
+						$post_status="publish";
+					
 					//create a post, with title and para
 					// Create post object
 						$my_post = array(
 						'post_title' => $r_decoded->title,
 						'post_content'  => $r_decoded->description,
-						'post_status'   => 'draft',
+						'post_status'   => $post_status,
 						'post_author'   => 1
 						);
 
@@ -111,7 +119,7 @@ foreach($twitter_accounts as $t_acc)
 					//download the image and make it featured image if we have 1 or more image
 					if(isset($r_decoded->images))
 					{	
-						print_r($r_decoded->images);
+						
 						$image=$r_decoded->images[0]->url;
 					
 						// magic sideload image returns an HTML image, not an ID
@@ -148,6 +156,8 @@ foreach($twitter_accounts as $t_acc)
 					update_post_meta($post_id,'twitter_url',$url->expanded_url);
 				}
 			}			
+      echo '<br>'.$url->expanded_url .' = '.$r_decoded->url;
+      //print_r($t->entities->urls);
 		}
 	}
 	
