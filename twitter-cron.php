@@ -36,9 +36,9 @@ $token='';  //Access Token
 $token_sceret='';  //Access Token Secret
 $embeddly_key = "";  //embeddly api key
 
-$twitter_accounts =array();
+$twitter_accounts =array('rohit11','thecancerus');
 
-$publish_acc=array();
+$publish_acc=array('thecancerus');
 
 $settings = array(
     'oauth_access_token' => $token,
