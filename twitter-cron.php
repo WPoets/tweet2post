@@ -72,7 +72,7 @@ foreach($twitter_accounts as $t_acc)
 	//foreach tweet parse the urls
 	$decoded_response=json_decode($response);
 	// from each url fetch title, one para and one image2wbmp
-		foreach($decoded_response as $t)
+	foreach($decoded_response as $t)
 	{
 		$last_tweet_id[$t_acc]=$t->id_str;
 		foreach($t->entities->urls as $url)
@@ -81,6 +81,7 @@ foreach($twitter_accounts as $t_acc)
 			$r=wp_remote_get('http://api.embed.ly/1/extract?key='.$embeddly_key.'&url='.$url->expanded_url.'&maxwidth=500');
 			if(!is_wp_error($r))
 			{ 
+				$r_decoded=json_decode($r['body']);
 				$args = array(
 						'post_type'		=>	'post',
 						'post_status' => array( 'publish', 'draft' ),
@@ -100,7 +101,7 @@ foreach($twitter_accounts as $t_acc)
 					
 					//print_r($r);
 					
-						$r_decoded=json_decode($r['body']);
+						
 						$post_status="draft";
 						
 						if(in_array($t_acc, $publish_acc))
