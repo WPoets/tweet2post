@@ -52,10 +52,12 @@ $twitter = new TwitterAPIExchange($settings);
 
 //now get the tweets// save the last_tweet_id
 $last_tweet_id=array();
+$sc=get_option('since_last_time');
+
 foreach($twitter_accounts as $t_acc)
 {
 	$turl = 'https://api.twitter.com/1.1/statuses/user_timeline.json';
-	$sc=get_option('since_last_time');
+	
 	if(isset($sc[$t_acc]))
 	{
 		$since_id ='&since_id='.$sc[$t_acc];
@@ -63,7 +65,7 @@ foreach($twitter_accounts as $t_acc)
 	else
 		$since_id ='';
 	
-	$getfield = '?screen_name='.$t_acc.'&count=10'.$since_id;
+	$getfield = '?include_rts=false&screen_name='.$t_acc.'&count=10'.$since_id;
 	
 	$requestMethod = 'GET';	
 
@@ -72,9 +74,9 @@ foreach($twitter_accounts as $t_acc)
 	//foreach tweet parse the urls
 	$decoded_response=json_decode($response);
 	// from each url fetch title, one para and one image2wbmp
+	$last_tweet_id[$t_acc]=$decoded_response[0]->id_str;
 	foreach($decoded_response as $t)
 	{
-		$last_tweet_id[$t_acc]=$t->id_str;
 		foreach($t->entities->urls as $url)
 		{
 			
@@ -166,5 +168,5 @@ foreach($twitter_accounts as $t_acc)
 	
 	//save the since_id parameter
 }
-add_option('since_last_time',$last_tweet_id);
+update_option('since_last_time',$last_tweet_id);
 die();
